@@ -4,7 +4,7 @@ Module 3. Infrastructure module that Office Agent and future sector agents are b
 
 **Dogfooding → template:** a universal RAG pipeline (vector DB, chunking strategy, retrieval + generation prompt template) that plugs into any client's private data corpus.
 
-**Status:** Etap 1 (RAG over our own documentation) — done, retrieval quality tested. Etap 2 (pipeline ready to plug in a client corpus) — base version ready, production deploy not yet done (depends on the internal-db decision, see below).
+**Status:** Stage 1 (RAG over our own documentation) — done, retrieval quality tested. Stage 2 (pipeline ready to plug in a client corpus) — base version ready, production deploy not yet done (depends on the internal-db decision, see below).
 
 ## Vector DB decision: pgvector, not Qdrant
 
@@ -35,7 +35,7 @@ The same droplet as the rest of HELLFIRE (fra1/Frankfurt, `hellfire_net`, `hellf
 
 First split by Markdown headings (so a chunk stays on one topic), then by paragraph for headingless blocks longer than 1500 characters. PDF (no headings) goes straight to paragraph splitting. The same `RawChunk(source, heading, text)` interface already used by `office-agent`'s BM25 stub (`office_agent/knowledge_base/ingest.py`) — deliberately, so office-agent can plug in this pipeline without changing its own `ingest -> chunks -> search` contract.
 
-## Etap 1 — dogfooding results (2026-07-20/21)
+## Stage 1 — dogfooding results (2026-07-20/21)
 
 Corpus: `office-agent/samples/docs/` (business-model.md, module-catalog.md, teta-pi-relationship.md) — real HELLFIRE/TETA+PI documentation, already used by office-agent. A dedicated Data Room or Pitch Deck for HELLFIRE itself doesn't exist yet (the company is at the session-03 stage — no site yet); PDF ingestion was additionally run locally (not committed, confidential content) against TETA+PI's real pitch deck (`PI_PitchDeck_EN.pdf`) — pypdf cleanly extracted text into 8 chunks, the path confirmed working.
 
@@ -45,7 +45,7 @@ Run: `python eval/dogfood_stage1.py` (no API keys — local embedder only).
 
 Specific finding: pure semantic (dense) retrieval sometimes underweights short, lexically precise negation sentences ("never hourly," "built first because X") in favor of broader topically similar chunks. For example the query "can a contractor be billed hourly" surfaced the "Pricing shape" section (topically close) rather than the "Sales and delivery constraints" section, which literally says "never billed hourly."
 
-**Conclusion for Etap 2:** don't replace office-agent's BM25 with dense retrieval — combine them (hybrid: BM25 + embeddings, or rerank). office-agent already has a working `BM25Index` — adding a dense pipeline on top gives better recall on both query types than either alone.
+**Conclusion for Stage 2:** don't replace office-agent's BM25 with dense retrieval — combine them (hybrid: BM25 + embeddings, or rerank). office-agent already has a working `BM25Index` — adding a dense pipeline on top gives better recall on both query types than either alone.
 
 ## Local run
 
@@ -74,7 +74,7 @@ python eval/dogfood_stage1.py
 - `rag/generation.py` — prompt template + Anthropic-based synthesis.
 - `rag/cli.py` — `rag ingest` / `rag query`.
 - `migrations/0001_rag_schema.sql` — `rag` schema in the shared HELLFIRE Postgres instance.
-- `eval/dogfood_stage1.py` — Etap 1 test.
+- `eval/dogfood_stage1.py` — Stage 1 test.
 - `tests/` — pytest.
 
 **License:** MIT.
