@@ -110,9 +110,9 @@ class PgVectorStore:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT source, heading, text, 1 - (embedding <=> %s) AS score
+                    SELECT source, heading, text, 1 - (embedding <=> %s::vector) AS score
                     FROM rag.chunks
-                    ORDER BY embedding <=> %s
+                    ORDER BY embedding <=> %s::vector
                     LIMIT %s
                     """,
                     (query_vector, query_vector, top_k),
